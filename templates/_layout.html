@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-t">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Event Planning System</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  </head>
+  <body>
+    <header>
+        <nav>
+            {% if session.role == 'admin' %}
+            <a href="/admin">Admin Dashboard</a>
+            <a href="/logout">Logout</a>
+            {% elif session.role == 'user' %}
+            <a href="/user">User Dashboard</a>
+            <a href="/logout">Logout</a>
+            {% else %}
+            <a href="/Welcome">Welcome</a>
+            {% endif %}
+        </nav>
+     
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+      <!-- <p>DBMS Project</p> -->
+    </footer>
+  </body>
+</html>

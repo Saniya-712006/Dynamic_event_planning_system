@@ -1,0 +1,63 @@
+{% extends "_layout.html" %}
+
+{% block content %}
+
+<div class="login-wrapper" id="login-wrapper">
+  
+  <div class="splash-left" id="splash-left">
+    <!-- <div class="splash-rabbit">🐇</div> -->
+     <img src="{{ url_for('static', filename='images/penguin.gif') }}" alt="Party Penguin" class="splash-gif">
+  </div>
+  
+  <div class="splash-right" id="splash-right">
+    
+    <h2 class="splash-title">Dynamic Event Planning System</h2>
+    
+    <button id="show-login-btn" class="login-btn">Login</button>
+
+    <div id="login-form-container">
+      <form action="/login" method="POST">
+        <label for="username">Username (SID or 'admin')</label>
+        <input type="text" id="username" name="username" required>
+        
+        <label for="password">Password (or 'admin' for admin)</label>
+        <input type="password" id="password" name="password" required>
+        
+        <button type="submit" class="login-btn">Login</button>
+      </form>
+    </div>
+
+  </div> </div> {% if error %}
+<div class="error-message">
+  <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+
+<script>
+  // Wait for the page to load
+  document.addEventListener("DOMContentLoaded", function() {
+    
+    // Get the button and the main wrapper
+    const showLoginBtn = document.getElementById("show-login-btn");
+    const loginWrapper = document.getElementById("login-wrapper");
+    
+    // 1. Pass the Jinja variable to a JavaScript variable
+    // We put it in quotes so it becomes a JS string
+    const serverError = "{{ error }}";
+
+    // When the "Login" button is clicked...
+    showLoginBtn.addEventListener("click", function() {
+      // Add a class to the wrapper to trigger the CSS animation
+      loginWrapper.classList.add("login-active");
+    });
+
+    // 2. Now, just check the JavaScript variable.
+    // This is pure JavaScript, so the editor is happy!
+    if (serverError) {
+      loginWrapper.classList.add("login-active");
+    }
+  });
+</script>
+
+{% endblock %}

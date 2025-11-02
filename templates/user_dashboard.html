@@ -1,0 +1,7 @@
+{% extends "_layout.html" %}
+
+{% block content %}
+  <h2>User Dashboard</h2>
+  <p>Welcome, <strong>{{ session.username }}</strong> (SID: {{ session.sid }})!</p>
+  <p>Here you will see upcoming events, register for them, and view your attendance history.</p>
+{% endblock %}
