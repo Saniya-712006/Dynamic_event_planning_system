@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import mysql.connector
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables
 load_dotenv()
@@ -72,6 +73,133 @@ def login():
         
         error = 'Invalid credentials. Please try again.'
     return render_template('login.html', error=error)
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        # 1. Get the minimal data from the form
+        sid = request.form['sid']
+        password = request.form['password']
+
+        # 2. Store them in the session
+        session['temp_sid'] = sid
+        session['temp_password'] = password
+        
+        # 3. Redirect to the new 'fill_profile' page
+        return redirect(url_for('fill_profile'))
+
+    # If GET request, just show the signup page
+    return render_template('signup.html')
+
+@app.route('/fill_profile', methods=['GET', 'POST'])
+def fill_profile():
+    # Check if the user has temp data. If not, send them back to signup.
+    if 'temp_sid' not in session or 'temp_password' not in session:
+        return redirect(url_for('signup'))
+    
+    error = None
+    if request.method == 'POST':
+        try:
+            # 1. Get the new details from the form
+            fname = request.form['fname']
+            lname = request.form['lname']
+            department = request.form['department']
+            sem = request.form['sem']
+            
+            # 2. Get the old details from the session
+            sid = session['temp_sid']
+            password = session['temp_password']
+            
+            # 3. Hash the password
+            password_hash = generate_password_hash(password)
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # 4. Insert the COMPLETE student record
+            cursor.execute(
+                "INSERT INTO students (sid, fname, lname, department, sem, password) VALUES (%s, %s, %s, %s, %s, %s)",
+                (sid, fname, lname, department, sem, password_hash)
+            )
+            conn.commit()
+            
+            # 5. Clear the temp session data
+            session.pop('temp_sid', None)
+            session.pop('temp_password', None)
+            
+            # 6. Log the user in properly
+            session['role'] = 'user'
+            session['sid'] = sid
+            session['username'] = fname
+            
+            flash(f"Welcome, {fname}! Your account is all set up.", 'success')
+            return redirect(url_for('user_dashboard')) # Send them to the user dashboard
+
+        except mysql.connector.Error as err:
+            error = f"Error creating account: {err}"
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+
+    # If GET request or error, show the profile completion page
+    return render_template('fill_profile.html', error=error) 
+
+@app.route('/my_profile', methods=['GET', 'POST'])
+def my_profile():
+    # 1. Check if user is logged in
+    if 'role' not in session or session['role'] != 'user':
+        return redirect(url_for('login'))
+    
+    sid = session['sid']
+    error = None
+    
+    if request.method == 'POST':
+        # --- This is the UPDATE (POST) logic ---
+        try:
+            fname = request.form['fname']
+            lname = request.form['lname']
+            department = request.form['department']
+            sem = request.form['sem']
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                "UPDATE students SET fname = %s, lname = %s, department = %s, sem = %s WHERE sid = %s",
+                (fname, lname, department, sem, sid)
+            )
+            conn.commit()
+            flash("Profile updated successfully!", 'success')
+            
+        except mysql.connector.Error as err:
+            flash(f"Error updating profile: {err}", 'error')
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+        
+        # After updating, just redirect back to the same page
+        return redirect(url_for('my_profile'))
+
+    # --- This is the page load (GET) logic ---
+    conn = get_db_connection()
+    if not conn:
+        return "<h1>Database connection failed.</h1>"
+        
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT sid, fname, lname, department, sem FROM students WHERE sid = %s", (sid,))
+    student_data = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    
+    if not student_data:
+        # This should never happen if they're logged in, but it's a good safeguard
+        flash("Error: Could not find your student data.", 'error')
+        return redirect(url_for('logout'))
+
+    return render_template('my_profile.html', student=student_data)
 
 @app.route('/logout')
 def logout():

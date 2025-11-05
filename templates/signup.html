@@ -1,0 +1,35 @@
+{% extends "_layout.html" %}
+{% set page_class = 'centered-page' %} {% block content %}
+
+<div class="login-wrapper login-active"> <div class="splash-left">
+      <img src="{{ url_for('static', filename='images/penguin.gif') }}" alt="Party Penguin" class="splash-gif">
+    </div>
+    
+    <div class="splash-right">
+      
+      <h2 class="splash-title">Create Your Account</h2>
+      
+      <div id="login-form-container">
+        <form action="{{ url_for('signup') }}" method="POST" class="admin-form">
+            
+            <label for="sid">Student ID (e.g., S005)</label>
+            <input type="text" id="sid" name="sid" required maxlength="5">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit" class="login-btn">Sign Up</button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 20px;">
+            Already have an account? <a href="{{ url_for('login') }}" class="table-link">Login here</a>
+        </p>
+      </div>
+
+    </div> </div> {% if error %}
+<div class="error-message">
+  <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+{% endblock %}

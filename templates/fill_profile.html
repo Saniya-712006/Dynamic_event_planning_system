@@ -1,0 +1,46 @@
+{% extends "_layout.html" %}
+{% set page_class = 'profile-page' %} 
+
+{% block content %}
+
+<div class="profile-container">
+      
+    <h2 class="profile-title">My Profile</h2>
+    <p>Almost there, <strong>{{ session.temp_sid }}</strong>! We just need a few more details.</p>
+      
+    <div class="form-content">
+        <form action="{{ url_for('fill_profile') }}" method="POST" class="admin-form">
+            
+            <input type="hidden" name="sid" value="{{ session.temp_sid }}">
+            <input type="hidden" name="password" value="{{ session.temp_password }}">
+
+            <label for="fname">First Name</label>
+            <input type="text" id="fname" name="fname" required>
+
+            <label for="lname">Last Name</label>
+            <input type="text" id="lname" name="lname">
+
+            <label for="dept">Department</label>
+            <select id="dept" name="department" required>
+                <option value="">-- Select Department --</option>
+                <option value="CSE">CSE</option>
+                <option value="ECE">ECE</option>
+                <option value="MECH">MECH</option>
+                <option value="CIVIL">CIVIL</option>
+                <option value="GENERAL">GENERAL</option>
+            </select>
+            
+            <label for="sem">Semester</label>
+            <input type="number" id="sem" name="sem" min="1" max="8" required>
+
+            <button type="submit" class="login-btn btn-neon">Create My Account</button>
+        </form>
+    </div>
+
+</div> {% if error %}
+<div class="error-message">
+  <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+{% endblock %}

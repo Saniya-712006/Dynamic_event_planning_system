@@ -15,6 +15,7 @@
             <a href="/admin">Admin Dashboard</a>
             <a href="/logout">Logout</a>
             {% elif session.role == 'user' %}
+            <a href="{{ url_for('my_profile') }}">My Profile</a>
             <a href="/user">User Dashboard</a>
             <a href="/logout">Logout</a>
             {% else %}
