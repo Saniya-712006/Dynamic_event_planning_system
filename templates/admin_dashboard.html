@@ -3,5 +3,89 @@
 {% block content %}
   <h2>Admin Dashboard</h2>
   <p>Welcome, <strong>{{ session.username }}</strong>! You have admin privileges.</p>
-  <p>Here you will see analytics, manage events, and approve attendance.</p>
+  <hr>
+
+  <div class="dashboard-container">
+
+    <div class="dashboard-left">
+      
+      <div class="table-viewer-form">
+        <form method="GET" action="{{ url_for('admin_dashboard') }}">
+          <label for="view-select">Select a Table/View:</label>
+          <select name="view" id="view-select">
+            {% for view_name in allowed_views %}
+              <option value="{{ view_name }}" {% if current_view == view_name %}selected{% endif %}>
+                {{ view_name }}
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn-small">View</button>
+        </form>
+      </div>
+
+      <hr>
+
+      <h4>Viewing: {{ current_view }}</h4>
+      <div class="dynamic-table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              {% for header in table_headers %}
+                <th>{{ header }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in table_data %}
+            <tr>
+              {% for header in table_headers %}
+                {% if 'date' in header and row[header] %}
+                  <td>{{ row[header].strftime('%d %b %Y') }}</td>
+                {% else %}
+                  <td>{{ row[header] }}</td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="{{ table_headers|length or 1 }}">No data found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div> <div class="resizer" id="dragMe"></div>
+
+    <div class="dashboard-right">
+      <h3>Admin Actions</h3>
+      <p>This panel is for creating, editing, and deleting items.</p>
+      <div class="form-placeholder">
+        <h4>Create New Event</h4>
+        <p>Form elements...</p>
+      </div>
+    </div> </div> <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const resizer = document.getElementById('dragMe');
+        const leftPanel = resizer.previousElementSibling;
+        const rightPanel = resizer.nextElementSibling;
+        let initialMouseX = 0, initialLeftWidth = 0;
+        function startResize(e) {
+            e.preventDefault();
+            initialMouseX = e.clientX;
+            initialLeftWidth = leftPanel.offsetWidth;
+            window.addEventListener('mousemove', doResize);
+            window.addEventListener('mouseup', stopResize);
+        }
+        function doResize(e) {
+            leftPanel.style.width = (initialLeftWidth + e.clientX - initialMouseX) + 'px';
+        }
+        function stopResize() {
+            window.removeEventListener('mousemove', doResize);
+            window.removeEventListener('mouseup', stopResize);
+        }
+        resizer.addEventListener('mousedown', startResize);
+    });
+  </script>
+
 {% endblock %}

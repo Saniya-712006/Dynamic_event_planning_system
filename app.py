@@ -97,13 +97,77 @@ def logout():
 # --- 4. Protected Routes ---
 # These routes check if the user is logged in
 
+# --- 4. Protected Routes ---
+
+# This is our "whitelist" for security.
+# It's a list of tables and views the admin can access.
+ALLOWED_ADMIN_VIEWS = [
+    'v_event_summary',
+    'v_attends_detailed',
+    'v_feedback_detailed',
+    'v_club_membership',
+    'students',
+    'club',
+    'venue',
+    'resource',
+    'sponsor',
+    'faculty'
+]
+
 @app.route('/admin')
 def admin_dashboard():
     # Check if user is an admin
     if 'role' not in session or session['role'] != 'admin':
         return redirect(url_for('login'))
     
-    return render_template('admin_dashboard.html')
+    conn = get_db_connection()
+    if not conn:
+        return "<h1>Database connection failed.</h1>"
+    
+    cursor = conn.cursor(dictionary=True)
+    
+    # --- NEW: Simplified Data Fetching Logic ---
+    
+    # Get the table/view name from the URL
+    requested_view = request.args.get('view')
+    
+    # If no view is requested, or it's not allowed, default to 'v_event_summary'
+    if not requested_view or requested_view not in ALLOWED_ADMIN_VIEWS:
+        requested_view = 'v_event_summary'
+
+    # --- This is now the ONLY data query for the page ---
+    table_headers = []
+    table_data = []
+
+    try:
+        query = f"SELECT * FROM {requested_view}"
+        
+        # Add default sorting ONLY for our event summary
+        if requested_view == 'v_event_summary':
+            query += " ORDER BY actual_date DESC"
+
+        cursor.execute(query)
+        table_data = cursor.fetchall()
+        
+        # Get column headers
+        if table_data:
+            table_headers = [col[0] for col in cursor.description]
+
+    except mysql.connector.Error as err:
+        print(f"Error fetching dynamic table: {err}")
+        # You might want to flash an error message here
+
+    cursor.close()
+    conn.close()
+    
+    # Pass the single set of data to the template
+    return render_template(
+        'admin_dashboard.html', 
+        allowed_views=ALLOWED_ADMIN_VIEWS,
+        current_view=requested_view,  # Pass the name of the view we're showing
+        table_headers=table_headers,
+        table_data=table_data
+    )
 
 @app.route('/user')
 def user_dashboard():

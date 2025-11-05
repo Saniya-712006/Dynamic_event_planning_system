@@ -1,5 +1,6 @@
 /* Basic body styling */
-body {
+/* Change 'body' to 'body.centered-page' */
+body.centered-page {
     font-family: Arial, sans-serif;
     background-color: #333;
     color: #eee;
@@ -9,6 +10,24 @@ body {
     justify-content: center;
     align-items: center;
     height: 90vh;
+}
+
+/* This is for the dashboard pages */
+/* body.full-width-page {
+    font-family: Arial, sans-serif;
+    background-color: #333;
+    color: #eee;
+    margin: 0;
+    /* No centering! */
+/*}
+ */
+
+ /* This is the new default for ALL pages */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #333;
+    color: #eee;
+    margin: 0;
 }
 
 /* This is the main container that transforms */
@@ -193,3 +212,161 @@ nav a:hover {
 main {
     margin-top: 60px; /* Give space for the header */
 }
+
+/* --- Admin Dashboard Layout --- */
+
+.dashboard-container {
+    display: flex;
+    flex-wrap: nowrap; /* Don't wrap */
+    gap: 0; 
+    
+    /* Make it fill the screen below the header */
+    width: 100%;
+    height: calc(100vh - 60px); /* Full viewport height minus the header height */
+    box-sizing: border-box; 
+}
+
+/* MODIFIED: Left column no longer uses flex: 2 */
+.dashboard-left {
+    width: 60%;
+    min-width: 300px;
+    overflow-y: auto; 
+    height: 100%; 
+    padding: 20px; /* <-- ADD PADDING HERE */
+    box-sizing: border-box; /* And this */
+}
+
+.dashboard-right {
+    flex: 1; 
+    min-width: 250px;
+    background-color: #3a3a3a;
+    overflow-y: auto;
+    height: 100%;
+    padding: 20px; /* <-- ADD PADDING HERE */
+    box-sizing: border-box; /* And this */
+}
+
+.form-placeholder {
+    background-color: #444;
+    border: 1px dashed #666;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+    color: #999;
+}
+
+/* --- Professional Table Styling --- */
+table.data-table {
+    width: 100%; /* Make the table fill the left column */
+    border-collapse: collapse; /* Clean, single-line borders */
+    margin-top: 15px;
+}
+
+/* This is for the dashboard pages */
+body.full-width-page {
+    font-family: Arial, sans-serif;
+    background-color: #333; /* This is your main dark background */
+    /* color: #eee;             This is the default light text */
+    margin: 0;
+}
+
+
+/* Table header styling */
+/* Table header styling */
+table.data-table th {
+    background-color: #f0ad4e; /* The yellow/orange color */
+    color: #333;             /* Dark text on the yellow */
+    font-weight: bold;
+    padding: 12px 15px;
+    text-align: left; 
+}
+
+/* Table cell styling */
+table.data-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #555; /* Separator line for each row */
+    color: #eee;
+}
+
+/* Add a hover effect to rows for better readability */
+/* Add a hover effect to rows for better readability */
+/* This rule will ONLY handle the background */
+table.data-table tbody tr:hover {
+    background-color: #eca517; /* The yellow/orange color */
+}
+
+/* This NEW, more specific rule handles the text */
+table.data-table tbody tr:hover td {
+    color: #333; /* Dark text on the hover */
+}
+
+/* --- New Resizer Bar Style --- */
+.resizer {
+    /* This is the drag handle */
+    width: 10px;
+    height: 100%; /* Make it fill the container's height */
+    background: #555;
+    cursor: col-resize; /* The "resize" mouse icon */
+    
+    /* These prevent weird text selection while dragging */
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+.resizer:hover {
+    background: #f0ad4e; /* Highlight the bar on hover */
+}
+
+/* --- Admin Table Viewer --- */
+.table-viewer-form form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.table-viewer-form label {
+    font-size: 0.9rem;
+}
+
+.table-viewer-form select {
+    background-color: #333;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+.btn-small {
+    background-color: #f0ad4e; /* The yellow/orange color */
+    color: #333;             /* Dark text on the button */
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold; /* Make it match the other button */
+}
+.btn-small:hover {
+    background-color: #f0ad4e;
+    color: #333;
+}
+
+.dynamic-table-container {
+    /* Add a horizontal scrollbar if table is too wide */
+    overflow-x: auto;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
