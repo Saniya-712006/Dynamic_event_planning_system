@@ -1,6 +1,19 @@
 {% extends "_layout.html" %}
 
 {% block content %}
+  
+  <!-- NEW: Add this block to display flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class=flash-messages>
+      {% for category, message in messages %}
+        <li class="flash-{{ category }}">{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  
+  <!-- The stray <tbody> tag was removed from here -->
   <h2>Admin Dashboard</h2>
   <p>Welcome, <strong>{{ session.username }}</strong>! You have admin privileges.</p>
   <hr>
@@ -33,38 +46,124 @@
               {% for header in table_headers %}
                 <th>{{ header }}</th>
               {% endfor %}
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for row in table_data %}
             <tr>
               {% for header in table_headers %}
-                {% if 'date' in header and row[header] %}
-                  <td>{{ row[header].strftime('%d %b %Y') }}</td>
-                {% else %}
-                  <td>{{ row[header] }}</td>
-                {% endif %}
+                <td>
+                  {% if 'date' in header and row[header] %}
+                    {{ row[header].strftime('%d %b %Y') }}
+                  {% else %}
+                    {{ row[header] }}
+                  {% endif %}
+                </td>
               {% endfor %}
+
+              <!-- 
+                ACTIONS CELL WITH CORRECTED LOGIC 
+              -->
+              <td>
+                {% set edit_url = '#' %}
+                
+                {% if current_view == 'v_event_summary' or current_view == 'event' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.eid) %}
+                
+                {% elif current_view == 'students' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.sid) %}
+                
+                {% elif current_view == 'club' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.cid) %}
+                
+                {% elif current_view == 'venue' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.vid) %}
+
+                {% elif current_view == 'resource' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.rid) %}
+
+                {% elif current_view == 'sponsor' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.spid) %}
+
+                {% elif current_view == 'faculty' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.fid) %}
+
+                <!-- 
+                  FIX: This block now checks for the correct keys from BOTH the view and the base table
+                -->
+                {% elif current_view == 'v_attends_detailed' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit_sid=row.student_id, edit_eid=row.event_id) %}
+                {% elif current_view == 'attends' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit_sid=row.sid, edit_eid=row.eid) %}
+
+                {% elif current_view == 'v_feedback_detailed' %}
+                   {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.feedback_id) %}
+                {% elif current_view == 'feedback' %}
+                   {% set edit_url = url_for('admin_dashboard', view=current_view, edit=row.fbid) %}
+
+                {% elif current_view == 'v_club_membership' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit_sid=row.student_id, edit_cid=row.club_id) %}
+                {% elif current_view == 'is_part_of' %}
+                  {% set edit_url = url_for('admin_dashboard', view=current_view, edit_sid=row.sid, edit_cid=row.cid) %}
+                {% endif %}
+                
+
+                {% if edit_url != '#' %}
+                  <a href="{{ edit_url }}" class="table-link">Edit</a>
+                {% endif %}
+              </td>
             </tr>
             {% else %}
             <tr>
-              <td colspan="{{ table_headers|length or 1 }}">No data found.</td>
+              <td colspan="{{ (table_headers|length) + 1 }}">No data found.</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
 
-    </div> <div class="resizer" id="dragMe"></div>
+    </div> <!-- This closes dashboard-left -->
+    
+    <div class="resizer" id="dragMe"></div>
 
     <div class="dashboard-right">
       <h3>Admin Actions</h3>
       <p>This panel is for creating, editing, and deleting items.</p>
-      <div class="form-placeholder">
-        <h4>Create New Event</h4>
-        <p>Form elements...</p>
-      </div>
-    </div> </div> <script>
+      
+      <!-- This 'if/elif' block for the right panel is correct -->
+      {% if current_view == 'v_event_summary' or current_view == 'event' %}
+        {% include '_event_form.html' with context %}
+      {% elif current_view == 'students' %}
+        {% include '_student_form.html' with context %}
+      {% elif current_view == 'club' %}
+        {% include '_club_form.html' with context %}
+      {% elif current_view == 'venue' %}
+        {% include '_venue_form.html' with context %}
+      {% elif current_view == 'resource' %}
+        {% include '_resource_form.html' with context %}
+      {% elif current_view == 'sponsor' %}
+        {% include '_sponsor_form.html' with context %}
+      {% elif current_view == 'faculty' %}
+        {% include '_faculty_form.html' with context %}
+      {% elif current_view == 'v_attends_detailed' or current_view == 'attends' %}
+        {% include '_attends_form.html' with context %}
+      {% elif current_view == 'v_feedback_detailed' or current_view == 'feedback' %}
+        {% include '_feedback_form.html' with context %}
+      {% elif current_view == 'v_club_membership' or current_view == 'is_part_of' %}
+        {% include '_is_part_of_form.html' with context %}
+      {% else %}
+        <div class="form-placeholder">
+          <h4>Create/Edit Not Enabled</h4>
+          <p>C.R.U.D. is not enabled for this view.</p>
+        </div>
+      {% endif %}
+    </div> <!-- This closes dashboard-right -->
+
+  </div> <!-- FIX: This was the missing </div> for dashboard-container -->
+  
+  <!-- The script should be AFTER the container, not inside it -->
+  <script>
     document.addEventListener("DOMContentLoaded", function() {
         const resizer = document.getElementById('dragMe');
         const leftPanel = resizer.previousElementSibling;

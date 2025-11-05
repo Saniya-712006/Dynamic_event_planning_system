@@ -1,0 +1,44 @@
+{% if item_to_edit %}
+  <form action="{{ url_for('update_is_part_of', sid=item_to_edit.sid, cid=item_to_edit.cid) }}" method="POST" class="admin-form">
+    <h4>Update Membership</h4>
+{% else %}
+  <form action="{{ url_for('create_is_part_of') }}" method="POST" class="admin-form">
+    <h4>Create Club Membership</h4>
+{% endif %}
+
+    <label for="sid">Student</label>
+    <select id="sid" name="sid" required {% if item_to_edit %}disabled{% endif %}>
+        <option value="">-- Select Student --</option>
+        {% for s in students %}
+        <option value="{{ s.sid }}" {% if item_to_edit and item_to_edit.sid == s.sid %}selected{% endif %}>
+          {{ s.fname }} {{ s.lname }} ({{ s.sid }})
+        </option>
+        {% endfor %}
+    </select>
+    
+    <label for="cid">Club</label>
+    <select id="cid" name="cid" required {% if item_to_edit %}disabled{% endif %}>
+        <option value="">-- Select Club --</option>
+        {% for c in clubs %}
+        <option value="{{ c.cid }}" {% if item_to_edit and item_to_edit.cid == c.cid %}selected{% endif %}>
+          {{ c.cname }} ({{ c.cid }})
+        </option>
+        {% endfor %}
+    </select>
+    
+    <label for="role">Role (e.g., Member, Coordinator)</label>
+    <input type="text" id="role" name="role" value="{{ item_to_edit.role if item_to_edit else 'Member' }}">
+
+    {% if item_to_edit %}
+      <button type="submit" class="login-btn">Update Membership</button>
+    {% else %}
+      <button type="submit" class="login-btn">Create Membership</button>
+    {% endif %}
+</form>
+
+{% if item_to_edit %}
+  <hr>
+  <form action="{{ url_for('delete_is_part_of', sid=item_to_edit.sid, cid=item_to_edit.cid) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this membership?');">
+    <button type="submit" class="btn-danger">Delete Membership</button>
+  </form>
+{% endif %}

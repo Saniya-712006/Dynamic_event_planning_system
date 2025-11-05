@@ -1,0 +1,37 @@
+{% if item_to_edit %}
+  <form action="{{ url_for('update_faculty', fid=item_to_edit.fid) }}" method="POST" class="admin-form">
+    <h4>Update Faculty: {{ item_to_edit.ffname }}</h4>
+{% else %}
+  <form action="{{ url_for('create_faculty') }}" method="POST" class="admin-form">
+    <h4>Create New Faculty</h4>
+{% endif %}
+
+    <label for="fid">Faculty ID (e.g., F004)</label>
+    <input type="text" id="fid" name="fid" required maxlength="5" value="{{ item_to_edit.fid if item_to_edit }}" {% if item_to_edit %}readonly{% endif %}>
+    
+    <label for="ffname">First Name</label>
+    <input type="text" id="ffname" name="ffname" required value="{{ item_to_edit.ffname if item_to_edit }}">
+    
+    <label for="flname">Last Name</label>
+    <input type="text" id="flname" name="flname" value="{{ item_to_edit.flname if item_to_edit }}">
+    
+    <label for="dept">Department</label>
+    <select id="dept" name="dept">
+        {% for dept in departments %}
+        <option value="{{ dept }}" {% if item_to_edit and item_to_edit.dept == dept %}selected{% endif %}>{{ dept }}</option>
+        {% endfor %}
+    </select>
+
+    {% if item_to_edit %}
+      <button type="submit" class="login-btn">Update Faculty</button>
+    {% else %}
+      <button type="submit" class="login-btn">Create Faculty</button>
+    {% endif %}
+</form>
+
+{% if item_to_edit %}
+  <hr>
+  <form action="{{ url_for('delete_faculty', fid=item_to_edit.fid) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this faculty member?');">
+    <button type="submit" class="btn-danger">Delete Faculty</button>
+  </form>
+{% endif %}

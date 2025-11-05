@@ -1,0 +1,39 @@
+{% if item_to_edit %}
+  <form action="{{ url_for('update_venue', vid=item_to_edit.vid) }}" method="POST" class="admin-form">
+    <h4>Update Venue: {{ item_to_edit.vname }}</h4>
+{% else %}
+  <form action="{{ url_for('create_venue') }}" method="POST" class="admin-form">
+    <h4>Create New Venue</h4>
+{% endif %}
+
+    <label for="vid">Venue ID (e.g., V004)</label>
+    <input type="text" id="vid" name="vid" required maxlength="5" value="{{ item_to_edit.vid if item_to_edit }}" {% if item_to_edit %}readonly{% endif %}>
+    
+    <label for="vname">Venue Name</label>
+    <input type="text" id="vname" name="vname" required value="{{ item_to_edit.vname if item_to_edit }}">
+    
+    <label for="capacity">Capacity</label>
+    <input type="number" id="capacity" name="capacity" value="{{ item_to_edit.capacity if item_to_edit }}">
+    
+    <label for="floor">Floor</label>
+    <input type="number" id="floor" name="floor" required value="{{ item_to_edit.floor if item_to_edit }}">
+    
+    <label for="room">Room No.</label>
+    <input type="text" id="room" name="room" maxlength="4" value="{{ item_to_edit.room if item_to_edit }}">
+    
+    <label for="block">Block</label>
+    <input type="text" id="block" name="block" required value="{{ item_to_edit.block if item_to_edit }}">
+
+    {% if item_to_edit %}
+      <button type="submit" class="login-btn">Update Venue</button>
+    {% else %}
+      <button type="submit" class="login-btn">Create Venue</button>
+    {% endif %}
+</form>
+
+{% if item_to_edit %}
+  <hr>
+  <form action="{{ url_for('delete_venue', vid=item_to_edit.vid) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this venue?');">
+    <button type="submit" class="btn-danger">Delete Venue</button>
+  </form>
+{% endif %}

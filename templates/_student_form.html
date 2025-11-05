@@ -1,0 +1,25 @@
+<form action="{{ url_for('create_student') }}" method="POST" class="admin-form">
+    
+    <h4>Create New Student</h4>
+
+    <label for="sid">Student ID (e.g., S005)</label>
+    <input type="text" id="sid" name="sid" required maxlength="5">
+
+    <label for="fname">First Name</label>
+    <input type="text" id="fname" name="fname" required>
+
+    <label for="lname">Last Name</label>
+    <input type="text" id="lname" name="lname">
+
+    <label for="dept">Department</label>
+    <select id="dept" name="department">
+        {% for dept in departments %}
+        <option value="{{ dept }}">{{ dept }}</option>
+        {% endfor %}
+    </select>
+    
+    <label for="sem">Semester</label>
+    <input type="number" id="sem" name="sem" min="1" max="8" required>
+
+    <button type="submit" class="login-btn">Create Student</button>
+</form>

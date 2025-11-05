@@ -1,28 +1,30 @@
-/* Basic body styling */
-/* Change 'body' to 'body.centered-page' */
+/* --- Body Styling (Login Page vs. Admin Page) --- */
+
+/* This is for the login page */
 body.centered-page {
     font-family: Arial, sans-serif;
-    background-color: #333;
-    color: #eee;
     margin: 0;
     /* Center everything on the page */
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 90vh;
+    height: 100vh; /* Full height */
+
+    /* NEW: Animated gradient background */
+    background: linear-gradient(135deg, #ff6a00, #ee0979, #7f00ff);
+    background-size: 400% 400%;
+    animation: moveGradient 12s ease infinite;
+    color: #f8f8f8;
 }
 
-/* This is for the dashboard pages */
-/* body.full-width-page {
-    font-family: Arial, sans-serif;
-    background-color: #333;
-    color: #eee;
-    margin: 0;
-    /* No centering! */
-/*}
- */
+/* NEW: Gradient animation keyframes */
+@keyframes moveGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
- /* This is the new default for ALL pages */
+/* This is the new default for ALL other pages (Admin) */
 body {
     font-family: Arial, sans-serif;
     background-color: #333;
@@ -30,21 +32,26 @@ body {
     margin: 0;
 }
 
+/* --- Login Page Wrapper --- */
+
 /* This is the main container that transforms */
 .login-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 70vw; /* 60% of the viewport width */
+    width: 70vw;
     height: 500px;
-    background-color: #444;
     border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    /* This is the animation! */
     transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+    /* NEW: "Glass" effect from your friend's code */
+    background: rgba(0, 0, 0, 0.8); /* black with 80% opacity */
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
 }
 
-/* The left side (for the rabbit) */
+/* The left side (for the penguin) */
 .splash-left {
     flex: 1; /* 50% width */
     text-align: center;
@@ -70,76 +77,62 @@ body {
 .splash-title {
     font-size: 2.5rem;
     font-weight: bold;
-    /* We'll animate the title moving up */
     transform: translateY(0);
     transition: all 0.5s ease;
+
+    /* NEW: Title glow */
+    color: #ffd166;
+    text-shadow: 0 0 10px rgba(255, 209, 102, 0.7);
 }
 
-/* Simple dance animation for the emoji */
 .splash-gif {
-    width: 200px; /* Set a specific width */
-    height: 200px; /* Set a specific height */
-    object-fit: contain; /* Make sure the GIF fits nicely */
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
     border-radius: 50%;
 }
 
-/* --- THE NEW STYLES for the "active" login box --- */
-/* --- THE NEW STYLES for the "active" login box --- */
+/* --- Login Active Styles --- */
 
-/* 1. The wrapper aligns to the top */
 .login-wrapper.login-active {
     align-items: flex-start;
 }
-
-/* 2. The rabbit STAYS (no rule to hide it) */
-
-/* 3. The right side shrinks to a fixed width */
 .login-wrapper.login-active .splash-right {
-    flex: 0 0 400px; /* fixed width of 400px */
+    flex: 0 0 400px;
     height: auto;
     border-left: none;
 }
-
-/* 4. The title "shifts up" */
 .login-wrapper.login-active .splash-title {
-    font-size: 2rem; /* Make it a bit smaller */
-    transform: translateY(-20px); /* Move it up */
+    font-size: 2rem;
+    transform: translateY(-20px);
 }
-
-/* 5. The original login button disappears */
 .login-wrapper.login-active #show-login-btn {
     display: none;
 }
-
-
-/* 6. The form appears */
 #login-form-container {
-    display: none; /* Hidden by default */
+    display: none;
     width: 100%;
     opacity: 0;
-    transition: opacity 0.5s 0.3s ease; /* Fade in *after* animation */
+    transition: opacity 0.5s 0.3s ease;
 }
-
 .login-wrapper.login-active #login-form-container {
     display: block;
     opacity: 1;
 }
 
-/* --- STYLES FOR THE FORM (to make it look good) --- */
+/* --- Login Form Styles --- */
 
 #login-form-container form {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Space between form elements */
+    gap: 15px;
     margin-top: 20px;
 }
-
 #login-form-container label {
     text-align: left;
     font-size: 0.9rem;
     color: #ccc;
 }
-
 #login-form-container input[type="text"],
 #login-form-container input[type="password"] {
     background-color: #333;
@@ -150,9 +143,8 @@ body {
     font-size: 1rem;
 }
 
+/* NEW: Lively gradient buttons */
 .login-btn {
-    background-color: #f0ad4e;
-    color: #333;
     padding: 12px 20px;
     border: none;
     border-radius: 5px;
@@ -160,10 +152,16 @@ body {
     font-size: 1.1rem;
     font-weight: bold;
     margin-top: 1rem;
-    transition: background-color 0.3s ease;
+    
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #222;
+    box-shadow: 0 4px 15px rgba(255, 209, 102, 0.4);
+    transition: all 0.3s ease;
 }
 .login-btn:hover {
-    background-color: #ec971f;
+    background: linear-gradient(135deg, #ffb347, #ffcc33);
+    box-shadow: 0 6px 20px rgba(255, 200, 100, 0.5);
+    transform: translateY(-2px); /* Lifts the button slightly */
 }
 
 .error-message {
@@ -173,28 +171,27 @@ body {
     padding: 15px;
     border-radius: 5px;
     width: 400px;
-    margin: 20px auto; /* Centered, below the box */
+    margin: 20px auto;
 }
 
 /* --- Navigation Bar Styling --- */
+/* This is the DEFAULT header for the admin page */
 header {
     width: 100%;
     background-color: #222;
     padding: 10px 20px;
-    position: absolute; /* Fix it to the top */
+    position: absolute;
     top: 0;
     left: 0;
     box-shadow: 0 2px 5px rgba(0,0,0,0.4);
     box-sizing: border-box;
 }
-
 nav {
     width: 100%;
     display: flex;
-    justify-content: flex-end; /* Pushes links to the right */
+    justify-content: flex-end;
     gap: 15px;
 }
-
 nav a {
     color: #eee;
     text-decoration: none;
@@ -203,49 +200,54 @@ nav a {
     border-radius: 5px;
     transition: background-color 0.3s ease;
 }
-
+/* This is the DEFAULT nav hover for the admin page */
 nav a:hover {
     background-color: #555;
 }
 
-/* This pushes the main content down so it's not hidden by the new navbar */
+/* NEW: These rules override the defaults ONLY on the login page
+*/
+body.centered-page header {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+body.centered-page nav a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffd166;
+}
+
+/* This pushes the main content down (for admin page) */
 main {
-    margin-top: 60px; /* Give space for the header */
+    margin-top: 60px;
 }
 
 /* --- Admin Dashboard Layout --- */
-
 .dashboard-container {
     display: flex;
-    flex-wrap: nowrap; /* Don't wrap */
+    flex-wrap: nowrap;
     gap: 0; 
-    
-    /* Make it fill the screen below the header */
     width: 100%;
-    height: calc(100vh - 60px); /* Full viewport height minus the header height */
+    height: calc(100vh - 60px);
     box-sizing: border-box; 
 }
-
-/* MODIFIED: Left column no longer uses flex: 2 */
 .dashboard-left {
     width: 60%;
     min-width: 300px;
     overflow-y: auto; 
     height: 100%; 
-    padding: 20px; /* <-- ADD PADDING HERE */
-    box-sizing: border-box; /* And this */
+    padding: 20px;
+    box-sizing: border-box;
 }
-
 .dashboard-right {
     flex: 1; 
     min-width: 250px;
     background-color: #3a3a3a;
     overflow-y: auto;
     height: 100%;
-    padding: 20px; /* <-- ADD PADDING HERE */
-    box-sizing: border-box; /* And this */
+    padding: 20px;
+    box-sizing: border-box;
 }
-
 .form-placeholder {
     background-color: #444;
     border: 1px dashed #666;
@@ -257,78 +259,51 @@ main {
 
 /* --- Professional Table Styling --- */
 table.data-table {
-    width: 100%; /* Make the table fill the left column */
-    border-collapse: collapse; /* Clean, single-line borders */
+    width: 100%;
+    border-collapse: collapse;
     margin-top: 15px;
 }
-
-/* This is for the dashboard pages */
-body.full-width-page {
-    font-family: Arial, sans-serif;
-    background-color: #333; /* This is your main dark background */
-    /* color: #eee;             This is the default light text */
-    margin: 0;
-}
-
-
-/* Table header styling */
-/* Table header styling */
 table.data-table th {
-    background-color: #f0ad4e; /* The yellow/orange color */
-    color: #333;             /* Dark text on the yellow */
+    background-color: #f0ad4e;
+    color: #333;
     font-weight: bold;
     padding: 12px 15px;
     text-align: left; 
 }
-
-/* Table cell styling */
 table.data-table td {
     padding: 12px 15px;
-    border-bottom: 1px solid #555; /* Separator line for each row */
+    border-bottom: 1px solid #555;
     color: #eee;
 }
-
-/* Add a hover effect to rows for better readability */
-/* Add a hover effect to rows for better readability */
-/* This rule will ONLY handle the background */
+/* Yellow hover for admin table */
 table.data-table tbody tr:hover {
-    background-color: #eca517; /* The yellow/orange color */
+    background-color: #f0ad4e;
 }
-
-/* This NEW, more specific rule handles the text */
 table.data-table tbody tr:hover td {
-    color: #333; /* Dark text on the hover */
+    color: #333;
 }
 
-/* --- New Resizer Bar Style --- */
+/* --- Resizer Bar Style --- */
 .resizer {
-    /* This is the drag handle */
     width: 10px;
-    height: 100%; /* Make it fill the container's height */
+    height: 100%;
     background: #555;
-    cursor: col-resize; /* The "resize" mouse icon */
-    
-    /* These prevent weird text selection while dragging */
+    cursor: col-resize;
     user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
 }
-
 .resizer:hover {
-    background: #f0ad4e; /* Highlight the bar on hover */
+    background: #f0ad4e;
 }
 
-/* --- Admin Table Viewer --- */
+/* --- Admin Table Viewer Form --- */
 .table-viewer-form form {
     display: flex;
     gap: 10px;
     align-items: center;
 }
-
 .table-viewer-form label {
     font-size: 0.9rem;
 }
-
 .table-viewer-form select {
     background-color: #333;
     color: #eee;
@@ -336,37 +311,143 @@ table.data-table tbody tr:hover td {
     border-radius: 5px;
     padding: 8px;
 }
-
+/* Admin "View" button */
 .btn-small {
-    background-color: #f0ad4e; /* The yellow/orange color */
-    color: #333;             /* Dark text on the button */
+    background-color: #f0ad4e;
+    color: #333;
     padding: 8px 12px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-weight: bold; /* Make it match the other button */
+    font-weight: bold;
 }
 .btn-small:hover {
-    background-color: #f0ad4e;
-    color: #333;
+    background-color: #ec971f;
 }
-
 .dynamic-table-container {
-    /* Add a horizontal scrollbar if table is too wide */
     overflow-x: auto;
 }
 
+/* --- Admin Form Styling (Right Panel) --- */
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.admin-form h4 {
+    margin-top: 0;
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+}
+.admin-form label {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+.admin-form input,
+.admin-form select {
+    background-color: #333;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 1rem;
+}
+.admin-form input[type="date"],
+.admin-form input[type="time"] {
+    color-scheme: dark;
+}
 
+/* --- Flash Message Styling --- */
+.flash-messages {
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+    list-style: none;
+    margin: 0;
+}
+.flash-messages li {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+.flash-success {
+    background-color: #2a5a2a;
+    color: #a3d9a3;
+}
+.flash-error {
+    background-color: #5a2d2d;
+    color: #ff8a8a;
+}
 
+/* --- New Button and Link Styles --- */
+a.table-link {
+    color: #f0ad4e;
+    text-decoration: none;
+    font-weight: bold;
+}
+a.table-link:hover {
+    text-decoration: underline;
+    color: #ec971f;
+}
+.btn-danger {
+    width: 100%;
+    background-color: #d9534f;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+.btn-danger:hover {
+    background-color: #c9302c;
+}
 
-
-
-
-
-
-
-
-
-
-
-
+/* --- Sub-Form Styling (Manage Resources) --- */
+.sub-form-container {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #555;
+}
+.sub-form-container h4 {
+    margin-top: 0;
+}
+.sub-form-container h5 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+.admin-form-inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.data-table-small {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table-small td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #555;
+}
+.data-table-small td:last-child {
+    text-align: right;
+}
+.btn-danger-small {
+    background-color: #d9534f;
+    color: #fff;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.btn-danger-small:hover {
+    background-color: #c9302c;
+}
+.form-inline {
+    margin: 0;
+}

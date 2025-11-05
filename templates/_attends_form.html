@@ -1,0 +1,47 @@
+{% if item_to_edit %}
+  <form action="{{ url_for('update_attends', sid=item_to_edit.sid, eid=item_to_edit.eid) }}" method="POST" class="admin-form">
+    <h4>Update Registration</h4>
+{% else %}
+  <form action="{{ url_for('create_attends') }}" method="POST" class="admin-form">
+    <h4>Create New Registration (Attends)</h4>
+{% endif %}
+
+    <label for="sid">Student</label>
+    <select id="sid" name="sid" required {% if item_to_edit %}disabled{% endif %}>
+        <option value="">-- Select Student --</option>
+        {% for s in students %}
+        <option value="{{ s.sid }}" {% if item_to_edit and item_to_edit.sid == s.sid %}selected{% endif %}>
+          {{ s.fname }} {{ s.lname }} ({{ s.sid }})
+        </option>
+        {% endfor %}
+    </select>
+    
+    <label for="eid">Event</label>
+    <select id="eid" name="eid" required {% if item_to_edit %}disabled{% endif %}>
+        <option value="">-- Select Event --</option>
+        {% for e in events %}
+        <option value="{{ e.eid }}" {% if item_to_edit and item_to_edit.eid == e.eid %}selected{% endif %}>
+          {{ e.ename }} ({{ e.eid }})
+        </option>
+        {% endfor %}
+    </select>
+    
+    <label for="status">Status</label>
+    <select id="status" name="status" required>
+        <option value="P" {% if item_to_edit and item_to_edit.status == 'P' %}selected{% endif %}>Pending (Registered)</option>
+        <option value="A" {% if item_to_edit and item_to_edit.status == 'A' %}selected{% endif %}>Attended</option>
+    </select>
+
+    {% if item_to_edit %}
+      <button type="submit" class="login-btn">Update Status</button>
+    {% else %}
+      <button type="submit" class="login-btn">Create Registration</button>
+    {% endif %}
+</form>
+
+{% if item_to_edit %}
+  <hr>
+  <form action="{{ url_for('delete_attends', sid=item_to_edit.sid, eid=item_to_edit.eid) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this registration?');">
+    <button type="submit" class="btn-danger">Delete Registration</button>
+  </form>
+{% endif %}

@@ -1,0 +1,130 @@
+{% if item_to_edit %}
+  <form action="{{ url_for('update_event', eid=item_to_edit.eid) }}" method="POST" class="admin-form">
+    <h4>Update Event: {{ item_to_edit.ename }}</h4>
+{% else %}
+  <form action="{{ url_for('create_event') }}" method="POST" class="admin-form">
+    <h4>Create New Event</h4>
+{% endif %}
+
+    <label for="eid">Event ID (e.g., E006)</label>
+    <input 
+      type="text" 
+      id="eid" 
+      name="eid" 
+      required 
+      maxlength="5" 
+      value="{{ item_to_edit.eid if item_to_edit }}"
+      {% if item_to_edit %}readonly{% endif %}>
+
+    <label for="ename">Event Name</label>
+    <input 
+      type="text" 
+      id="ename" 
+      name="ename" 
+      required 
+      maxlength="10" 
+      value="{{ item_to_edit.ename if item_to_edit }}">
+
+    <label for="etype">Event Type</label>
+    <select id="etype" name="etype">
+        {% for etype in event_types %}
+        <option 
+          value="{{ etype }}" 
+          {% if item_to_edit and item_to_edit.etype == etype %}selected{% endif %}>
+          {{ etype }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label for="dept">Department</label>
+    <select id="dept" name="dept">
+        {% for dept in departments %}
+        <option 
+          value="{{ dept }}" 
+          {% if item_to_edit and item_to_edit.dept == dept %}selected{% endif %}>
+          {{ dept }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label for="actual_date">Event Date</label>
+    <input 
+      type="date" 
+      id="actual_date" 
+      name="actual_date" 
+      required
+      value="{{ item_to_edit.actual_date.strftime('%Y-%m-%d') if item_to_edit }}">
+    
+    <label for="actual_time">Event Time</label>
+    <input 
+      type="time" 
+      id="actual_time" 
+      name="actual_time" 
+      required
+      value="{{ item_to_edit.actual_time if item_to_edit }}">
+
+    <label for="cid">Organizing Club</label>
+    <select id="cid" name="cid" required>
+        <option value="">-- Select a Club --</option>
+        {% for club in clubs %}
+        <option 
+          value="{{ club.cid }}" 
+          {% if item_club_cid and item_club_cid == club.cid %}selected{% endif %}>
+          {{ club.cname }}
+        </option>
+        {% endfor %}
+    </select>
+
+    {% if item_to_edit %}
+      <button type="submit" class="login-btn">Update Event</button>
+    {% else %}
+      <button type="submit" class="login-btn">Create Event</button>
+    {% endif %}
+</form>
+
+{% if item_to_edit %}
+  
+  <div class="sub-form-container">
+    <hr>
+    <h4>Manage Resources for {{ item_to_edit.ename }}</h4>
+    
+    <form action="{{ url_for('allocate_resource') }}" method="POST" class="admin-form-inline">
+      <input type="hidden" name="eid" value="{{ item_to_edit.eid }}">
+      <select name="rid" required>
+        <option value="">-- Select a resource --</option>
+        {% for res in resources %}
+          <option value="{{ res.rid }}">{{ res.type }}</option>
+        {% endfor %}
+      </select>
+      
+      <input type="number" name="quantity" min="1" value="1" required style="width: 70px; padding: 8px;" title="Quantity">
+      
+      <button type="submit" class="btn-small">Allocate</button>
+    </form>
+    
+    <h5>Currently Allocated:</h5>
+    <table class="data-table-small">
+      <tbody>
+        {% for res in allocated_resources %}
+        <tr>
+          <td>{{ res.type }} (Qty: {{ res.allocated_quantity }})</td>
+          <td>
+            <form action="{{ url_for('deallocate_resource', eid=item_to_edit.eid, rid=res.rid) }}" method="POST" class="form-inline" onsubmit="return confirm('Are you sure you want to remove ALL {{res.type}} from this event?');">
+              <button type="submit" class="btn-danger-small">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="2">No resources allocated yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+  <form action="{{ url_for('delete_event', eid=item_to_edit.eid) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this event? This action cannot be undone.');">
+    <button type="submit" class="btn-danger">Delete Event</button>
+  </form>
+{% endif %}

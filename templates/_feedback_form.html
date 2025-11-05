@@ -1,0 +1,40 @@
+{% if item_to_edit %}
+  <form action="{{ url_for('update_feedback', fbid=item_to_edit.fbid) }}" method="POST" class="admin-form">
+    <h4>Update Feedback: {{ item_to_edit.fbid }}</h4>
+{% else %}
+  <form action="{{ url_for('create_feedback') }}" method="POST" class="admin-form">
+    <h4>Create New Feedback</h4>
+{% endif %}
+
+    <label for="fbid">Feedback ID (e.g., FB05)</label>
+    <input type="text" id="fbid" name="fbid" required maxlength="5" value="{{ item_to_edit.fbid if item_to_edit }}" {% if item_to_edit %}readonly{% endif %}>
+    
+    <label for="event_id">Event</label>
+    <select id="event_id" name="event_id" required {% if item_to_edit %}disabled{% endif %}>
+        <option value="">-- Select Event --</option>
+        {% for e in events %}
+        <option value="{{ e.eid }}" {% if item_to_edit and item_to_edit.event_id == e.eid %}selected{% endif %}>
+          {{ e.ename }} ({{ e.eid }})
+        </option>
+        {% endfor %}
+    </select>
+    
+    <label for="rating">Rating (1-5)</label>
+    <input type="number" id="rating" name="rating" min="1" max="5" required value="{{ item_to_edit.rating if item_to_edit }}">
+    
+    <label for="comment">Comment</label>
+    <input type="text" id="comment" name="comment" value="{{ item_to_edit.comment if item_to_edit }}">
+
+    {% if item_to_edit %}
+      <button type="submit" class="login-btn">Update Feedback</button>
+    {% else %}
+      <button type="submit" class="login-btn">Create Feedback</button>
+    {% endif %}
+</form>
+
+{% if item_to_edit %}
+  <hr>
+  <form action="{{ url_for('delete_feedback', fbid=item_to_edit.fbid) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this feedback?');">
+    <button type="submit" class="btn-danger">Delete Feedback</button>
+  </form>
+{% endif %}

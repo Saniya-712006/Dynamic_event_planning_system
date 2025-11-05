@@ -1,0 +1,33 @@
+{% if item_to_edit %}
+  <form action="{{ url_for('update_club', cid=item_to_edit.cid) }}" method="POST" class="admin-form">
+    <h4>Update Club: {{ item_to_edit.cname }}</h4>
+{% else %}
+  <form action="{{ url_for('create_club') }}" method="POST" class="admin-form">
+    <h4>Create New Club</h4>
+{% endif %}
+
+    <label for="cid">Club ID (e.g., C005)</label>
+    <input type="text" id="cid" name="cid" required maxlength="5" value="{{ item_to_edit.cid if item_to_edit }}" {% if item_to_edit %}readonly{% endif %}>
+    
+    <label for="cname">Club Name</label>
+    <input type="text" id="cname" name="cname" required value="{{ item_to_edit.cname if item_to_edit }}">
+    
+    <label for="description">Description</label>
+    <input type="text" id="description" name="description" value="{{ item_to_edit.description if item_to_edit }}">
+    
+    <label for="domain_name">Domain Name (e.g., Sports)</label>
+    <input type="text" id="domain_name" name="domain_name" required value="{{ item_to_edit.domain_name if item_to_edit }}">
+
+    {% if item_to_edit %}
+      <button type="submit" class="login-btn">Update Club</button>
+    {% else %}
+      <button type="submit" class="login-btn">Create Club</button>
+    {% endif %}
+</form>
+
+{% if item_to_edit %}
+  <hr>
+  <form action="{{ url_for('delete_club', cid=item_to_edit.cid) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this club?');">
+    <button type="submit" class="btn-danger">Delete Club</button>
+  </form>
+{% endif %}
