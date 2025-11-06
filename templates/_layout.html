@@ -13,6 +13,7 @@
         <nav>
             {% if session.role == 'admin' %}
             <a href="/admin">Admin Dashboard</a>
+            <a href="{{ url_for('analytics_report') }}">Analytics</a>
             <a href="/logout">Logout</a>
             {% elif session.role == 'user' %}
             <a href="{{ url_for('my_profile') }}">My Profile</a>

@@ -1,0 +1,100 @@
+{% extends "_layout.html" %}
+{% set page_class = 'full-width-page' %} 
+
+{% block content %}
+  
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class=flash-messages>
+      {% for category, message in messages %}
+        <li class="flash-{{ category }}">{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <h2>Analytics & Reports</h2>
+  <p>Run analytics to see preference learning and resource optimization data.</p>
+  <hr>
+
+  <div class="dashboard-container">
+    <div class="dashboard-left">
+      <h3>Generate Full System Report</h3>
+      <p>This task runs in a background thread. Click "Generate" and refresh after a few seconds.</p>
+      
+      <form action="{{ url_for('run_analytics') }}" method="POST">
+        <button type="submit" class="login-btn">
+          {% if report_cache.is_running %}
+            Generating... (Please wait)
+          {% else %}
+            Generate Report
+          {% endif %}
+        </button>
+      </form>
+
+      {% if report_data %}
+        <hr>
+        
+        <div class="table-viewer-form">
+          <h4>Preference Learning Report</h4>
+          <a href="{{ url_for('download_csv', report_type='preference') }}" class="btn-small">Download as CSV</a>
+        </div>
+        <div class="dynamic-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                {% for header in report_data.preference_report[0].keys() %}
+                  <th>{{ header }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in report_data.preference_report %}
+              <tr>
+                {% for item in row.values() %}
+                  <td>{{ item }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <br><br>
+
+        <div class="table-viewer-form">
+          <h4>Resource Optimization Report</h4>
+          <a href="{{ url_for('download_csv', report_type='resource') }}" class="btn-small">Download as CSV</a>
+        </div>
+        <div class="dynamic-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                {% for header in report_data.resource_report[0].keys() %}
+                  <th>{{ header }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in report_data.resource_report %}
+              <tr>
+                {% for item in row.values() %}
+                  <td>{{ item }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      {% endif %}
+      </div>
+    <div class="dashboard-right">
+      <h4>What's Happening?</h4>
+      <p>This page demonstrates asynchronous task handling.</p>
+      <p>When you click "Generate Report," the server starts a new **thread** to run the calculations (simulating a 5-second ML task).</p>
+      <p>The app immediately redirects you here with a "generating" message. Once the thread is finished, you can refresh this page to see the results and download your CSV files.</p>
+    </div>
+  </div>
+
+{% endblock %}

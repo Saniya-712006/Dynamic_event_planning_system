@@ -1,8 +1,12 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+import io
+import csv
+from flask import Flask, render_template, request, redirect, url_for, session, flash, Response # <-- Add Response
 import mysql.connector
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
+import threading
+import time
 
 # Load environment variables
 load_dotenv()
@@ -16,6 +20,11 @@ db_host = os.getenv('DB_HOST')
 db_user = os.getenv('DB_USER')
 db_password = os.getenv('DB_PASSWORD')
 db_name = os.getenv('DB_NAME')
+
+report_cache = {
+    "is_running": False,
+    "data": None
+}
 
 def get_db_connection():
     """Establishes a connection to the MySQL database."""
@@ -1371,6 +1380,127 @@ def deallocate_resource(eid, rid):
             conn.close()
             
     return redirect(url_for('admin_dashboard', view='v_event_summary', edit=eid))
+
+
+# --- 5. Background Analytics Report ---
+def heavy_analytics_task():
+    """
+    This is our "heavy" function that runs in a background thread.
+    It simulates a 5-second ML task.
+    """
+    print("🤖 Thread: Analytics task started...")
+    report_cache["is_running"] = True
+    report_cache["data"] = None # Clear old data
+    
+    # 1. Simulate a long-running ML task
+    time.sleep(5)
+    
+    # 2. Run our "heavy" database queries
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor(dictionary=True)
+            
+            # This is your ML "Preference Learning" query
+            cursor.execute("""
+                SELECT 
+                    s.fname, 
+                    (SELECT etype FROM student_preferences sp WHERE sp.sid = s.sid LIMIT 1) as stated_preference,
+                    (SELECT e.etype FROM v_attends_detailed va JOIN event e ON va.event_id = e.eid WHERE va.student_id = s.sid AND va.attendance_status = 'A' GROUP BY e.etype ORDER BY COUNT(*) DESC LIMIT 1) as revealed_preference
+                FROM 
+                    students s;
+            """)
+            preference_report = cursor.fetchall()
+            
+            # This is your "Resource Optimization" query
+            cursor.execute("SELECT type, (pred_quantity - used_quantity) as variance FROM resource")
+            resource_report = cursor.fetchall()
+            
+            cursor.close()
+            conn.close()
+            
+            # 3. Store the final result
+            final_report = {
+                "preference_report": preference_report,
+                "resource_report": resource_report
+            }
+            report_cache["data"] = final_report # Store the raw dictionary
+            
+        except Exception as e:
+            report_cache["data"] = f"Error during report: {e}"
+        
+    print("🤖 Thread: Analytics task finished.")
+    report_cache["is_running"] = False
+
+
+@app.route('/admin/analytics')
+def analytics_report():
+    """Shows the Analytics page and the current report data."""
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+    
+    if report_cache["is_running"]:
+        flash("Report is still generating... Please refresh in a moment.", "success")
+    
+    return render_template('analytics_report.html', report_data=report_cache["data"], report_cache=report_cache)
+
+@app.route('/admin/run_analytics', methods=['POST'])
+def run_analytics():
+    """Starts the background thread to run the report."""
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+    
+    if not report_cache["is_running"]:
+        # Start the heavy task in a new thread
+        thread = threading.Thread(target=heavy_analytics_task)
+        thread.start()
+        flash("Report generation started in the background! This page will refresh.", "success")
+    else:
+        flash("A report is already running. Please wait.", "error")
+
+    return redirect(url_for('analytics_report'))
+
+
+@app.route('/admin/analytics/download_csv/<string:report_type>')
+def download_csv(report_type):
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+        
+    # Check if the report data exists
+    if not report_cache["data"]:
+        flash("No report data found. Please generate a report first.", "error")
+        return redirect(url_for('analytics_report'))
+    
+    # Select which part of the report to download
+    report_key = f"{report_type}_report"
+    if report_key not in report_cache["data"]:
+        flash("Invalid report type.", "error")
+        return redirect(url_for('analytics_report'))
+        
+    data = report_cache["data"][report_key]
+    
+    if not data:
+        flash("Report section is empty.", "error")
+        return redirect(url_for('analytics_report'))
+
+    # --- Create CSV in Memory ---
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write the headers (get them from the first dictionary)
+    headers = data[0].keys()
+    writer.writerow(headers)
+    
+    # Write the data rows
+    for row in data:
+        writer.writerow(row.values())
+    
+    # --- Return the CSV as a file download ---
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment;filename={report_type}_report.csv"}
+    )
 
 # --- 6. Run the App ---
 if __name__ == '__main__':
