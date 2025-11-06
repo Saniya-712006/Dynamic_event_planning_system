@@ -60,17 +60,19 @@ def login():
             return render_template('login.html', error=error)
         
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT sid, fname FROM students WHERE sid = %s", (username,))
+        cursor.execute("SELECT sid, fname, password FROM students WHERE sid = %s", (username,))
         student = cursor.fetchone()
         cursor.close()
         conn.close()
 
-        if student:
+        if student and check_password_hash(student['password'], password):
+            # Login successful! Password matches.
             session['role'] = 'user'
             session['sid'] = student['sid']
-            session['username'] = student['fname']
+            session['username'] = student['fname'] # Greet them by first name
             return redirect(url_for('user_dashboard'))
         
+        # 3. If no user found or password mismatch, show an error
         error = 'Invalid credentials. Please try again.'
     return render_template('login.html', error=error)
 
@@ -200,6 +202,120 @@ def my_profile():
         return redirect(url_for('logout'))
 
     return render_template('my_profile.html', student=student_data)
+
+
+@app.route('/register_event/<string:eid>', methods=['POST'])
+def register_event(eid):
+    # Check if user is a student
+    if 'role' not in session or session['role'] != 'user':
+        return redirect(url_for('login'))
+        
+    sid = session['sid']
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Insert the student's registration, default status is 'P'
+        cursor.execute(
+            "INSERT INTO attends (sid, eid, status) VALUES (%s, %s, 'P')",
+            (sid, eid)
+        )
+        conn.commit()
+        flash(f"Successfully registered for the event!", 'success')
+        
+    except mysql.connector.Error as err:
+        # This will catch your database trigger if they're already registered
+        flash(f"Error registering: {err}", 'error')
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+            
+    # Refresh the user dashboard
+    return redirect(url_for('user_dashboard'))
+
+@app.route('/cancel_registration/<string:eid>', methods=['POST'])
+def cancel_registration(eid):
+    # Check if user is a student
+    if 'role' not in session or session['role'] != 'user':
+        return redirect(url_for('login'))
+        
+    sid = session['sid']
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Delete the registration
+        cursor.execute(
+            "DELETE FROM attends WHERE sid = %s AND eid = %s",
+            (sid, eid)
+        )
+        conn.commit()
+        flash(f"Registration successfully cancelled.", 'success')
+        
+    except mysql.connector.Error as err:
+        flash(f"Error cancelling registration: {err}", 'error')
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+            
+    return redirect(url_for('user_dashboard'))
+
+@app.route('/feedback/<string:eid>', methods=['GET', 'POST'])
+def submit_feedback(eid):
+    # Check if user is a student
+    if 'role' not in session or session['role'] != 'user':
+        return redirect(url_for('login'))
+        
+    sid = session['sid']
+    
+    if request.method == 'POST':
+        # --- Handle the form submission ---
+        try:
+            # We need to generate a new unique Feedback ID (fbid)
+            # A simple way is to count existing ones and add 1
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT COUNT(*) as count FROM feedback")
+            count = cursor.fetchone()['count']
+            fbid = f"FB{count + 1:02d}" # Formats to FB05, FB06, etc.
+            
+            rating = request.form['rating']
+            comment = request.form['comment']
+            
+            cursor.execute(
+                "INSERT INTO feedback (fbid, rating, event_id, comment) VALUES (%s, %s, %s, %s)",
+                (fbid, rating, eid, comment)
+            )
+            conn.commit()
+            flash("Thank you for your feedback!", 'success')
+            return redirect(url_for('user_dashboard'))
+            
+        except mysql.connector.Error as err:
+            flash(f"Error submitting feedback: {err}", 'error')
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+        
+        return redirect(url_for('submit_feedback', eid=eid))
+
+    # --- Show the feedback form (GET request) ---
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT ename FROM event WHERE eid = %s", (eid,))
+    event = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not event:
+        flash("Event not found.", 'error')
+        return redirect(url_for('user_dashboard'))
+
+    return render_template('feedback_form.html', event=event, eid=eid)
 
 @app.route('/logout')
 def logout():
@@ -677,10 +793,53 @@ def create_is_part_of():
 # --- USER DASHBOARD (Placeholder) ---
 @app.route('/user')
 def user_dashboard():
+    # 1. Check if user is a student
     if 'role' not in session or session['role'] != 'user':
         return redirect(url_for('login'))
-    return render_template('user_dashboard.html')
+    
+    # 2. Get the logged-in student's ID
+    sid = session['sid']
+    
+    conn = get_db_connection()
+    if not conn:
+        return "<h1>Database connection failed.</h1>"
+    
+    cursor = conn.cursor(dictionary=True)
+    
+    # 3. Fetch all upcoming events
+    # We also check if the student is already registered for them
+    cursor.execute(
+        """
+        SELECT 
+            v.*,
+            (CASE WHEN a.sid IS NOT NULL THEN 1 ELSE 0 END) AS 'is_registered'
+        FROM 
+            v_event_summary v
+        LEFT JOIN 
+            attends a ON v.eid = a.eid AND a.sid = %s
+        WHERE 
+            v.actual_date >= CURDATE()
+        ORDER BY 
+            v.actual_date ASC;
+        """, (sid,)
+    )
+    upcoming_events = cursor.fetchall()
 
+    # 4. Fetch all of this student's registrations
+    cursor.execute(
+        "SELECT * FROM v_attends_detailed WHERE student_id = %s ORDER BY event_name", (sid,)
+    )
+    my_registrations = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+
+    # 5. Send this data to the new user_dashboard.html
+    return render_template(
+        'user_dashboard.html', 
+        upcoming_events=upcoming_events,
+        my_registrations=my_registrations
+    )
 # --- 6. ALL "UPDATE" and "DELETE" ROUTES ---
 
 # --- Event ---

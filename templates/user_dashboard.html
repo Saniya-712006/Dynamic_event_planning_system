@@ -1,7 +1,96 @@
 {% extends "_layout.html" %}
 
 {% block content %}
+  
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class=flash-messages>
+      {% for category, message in messages %}
+        <li class="flash-{{ category }}">{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
   <h2>User Dashboard</h2>
-  <p>Welcome, <strong>{{ session.username }}</strong> (SID: {{ session.sid }})!</p>
-  <p>Here you will see upcoming events, register for them, and view your attendance history.</p>
+  <p>Welcome, <strong>{{ session.username }}</strong>! (SID: {{ session.sid }})</p>
+
+  <hr>
+  <h3>Upcoming Events</h3>
+  <div class="dynamic-table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Event Name</th>
+          <th>Date</th>
+          <th>Time</th> <th>Club</th>
+          <th>Registered</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in upcoming_events %}
+        <tr>
+          <td>{{ event.ename }}</td>
+          <td>{{ event.actual_date.strftime('%d %b %Y') }}</td>
+          <td>{{ event.actual_time }}</td> <td>{{ event.club_name or 'N/A' }}</td>
+          <td>{{ event.registered_count }}</td>
+          <td>
+            {% if event.is_registered %}
+              <span style="color: #999;">(Registered)</span>
+            {% else %}
+              <form action="{{ url_for('register_event', eid=event.eid) }}" method="POST">
+                <button type="submit" class="btn-small">Register</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6">No upcoming events found.</td> </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+  <h3>My Registrations</h3>
+  <div class="dynamic-table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Event Name</th>
+          <th>Status</th>
+          <th>Action</th>
+          </tr>
+      </thead>
+      <tbody>
+        {% for reg in my_registrations %}
+        <tr>
+          <td>{{ reg.event_name }}</td>
+          <td>
+            {% if reg.attendance_status == 'A' %}
+              <span style="color: #39FF14;">Attended</span>
+            {% else %}
+              <span style="color: #f0ad4e;">Registered (Pending)</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if reg.attendance_status == 'P' %}
+              <form action="{{ url_for('cancel_registration', eid=reg.event_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this registration?');">
+                <button type="submit" class="btn-danger-small">Cancel</button>
+              </form>
+            {% else %}
+              <a href="{{ url_for('submit_feedback', eid=reg.event_id) }}" class="btn-small">Feedback</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3">You are not registered for any events.</td> </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
 {% endblock %}

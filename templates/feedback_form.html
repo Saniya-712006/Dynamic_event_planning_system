@@ -1,0 +1,35 @@
+{% extends "_layout.html" %}
+{% set page_class = 'profile-page' %} 
+
+{% block content %}
+  
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class=flash-messages>
+      {% for category, message in messages %}
+        <li class="flash-{{ category }}">{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+<div class="profile-container">
+      
+    <h2 class="profile-title">Submit Feedback</h2>
+    <p>For Event: <strong>{{ event.ename }}</strong> ({{ eid }})</p>
+      
+    <div class="form-content">
+        <form action="{{ url_for('submit_feedback', eid=eid) }}" method="POST" class="admin-form">
+            
+            <label for="rating">Rating (1-5)</label>
+            <input type="number" id="rating" name="rating" min="1" max="5" value="5" required>
+
+            <label for="comment">Comment (Optional)</label>
+            <textarea id="comment" name="comment" rows="4" style="background-color: #333; color: #eee; border: 1px solid #555; border-radius: 5px; padding: 10px; font-size: 1rem;"></textarea>
+
+            <button type="submit" class="login-btn btn-neon">Submit Feedback</button>
+        </form>
+    </div>
+</div> 
+
+{% endblock %}
