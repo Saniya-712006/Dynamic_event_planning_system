@@ -1,25 +1,40 @@
-<form action="{{ url_for('create_student') }}" method="POST" class="admin-form">
-    
+{% if item_to_edit %}
+  <form action="{{ url_for('update_student', sid=item_to_edit.sid) }}" method="POST" class="admin-form">
+    <h4>Update Student: {{ item_to_edit.fname }}</h4>
+{% else %}
+  <form action="{{ url_for('create_student') }}" method="POST" class="admin-form">
     <h4>Create New Student</h4>
+{% endif %}
 
     <label for="sid">Student ID (e.g., S005)</label>
-    <input type="text" id="sid" name="sid" required maxlength="5">
+    <input type="text" id="sid" name="sid" required maxlength="5" value="{{ item_to_edit.sid if item_to_edit }}" {% if item_to_edit %}readonly{% endif %}>
 
     <label for="fname">First Name</label>
-    <input type="text" id="fname" name="fname" required>
+    <input type="text" id="fname" name="fname" required value="{{ item_to_edit.fname if item_to_edit }}">
 
     <label for="lname">Last Name</label>
-    <input type="text" id="lname" name="lname">
+    <input type="text" id="lname" name="lname" value="{{ item_to_edit.lname if item_to_edit }}">
 
     <label for="dept">Department</label>
     <select id="dept" name="department">
         {% for dept in departments %}
-        <option value="{{ dept }}">{{ dept }}</option>
+        <option value="{{ dept }}" {% if item_to_edit and item_to_edit.department == dept %}selected{% endif %}>{{ dept }}</option>
         {% endfor %}
     </select>
     
     <label for="sem">Semester</label>
-    <input type="number" id="sem" name="sem" min="1" max="8" required>
+    <input type="number" id="sem" name="sem" min="1" max="8" required value="{{ item_to_edit.sem if item_to_edit }}">
 
-    <button type="submit" class="login-btn">Create Student</button>
+    {% if item_to_edit %}
+      <button type="submit" class="login-btn">Update Student</button>
+    {% else %}
+      <button type="submit" class="login-btn">Create Student</button>
+    {% endif %}
 </form>
+
+{% if item_to_edit %}
+  <hr>
+  <form action="{{ url_for('delete_student', sid=item_to_edit.sid) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this student?');">
+    <button type="submit" class="btn-danger">Delete Student</button>
+  </form>
+{% endif %}

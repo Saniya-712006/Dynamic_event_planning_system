@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS `allocated`;
 CREATE TABLE `allocated` (
   `eid` varchar(5) NOT NULL,
   `rid` varchar(5) NOT NULL,
+  `allocated_quantity` int NOT NULL DEFAULT '1',
   PRIMARY KEY (`eid`,`rid`),
   KEY `rid` (`rid`),
   CONSTRAINT `allocated_ibfk_1` FOREIGN KEY (`eid`) REFERENCES `event` (`eid`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -38,7 +39,7 @@ CREATE TABLE `allocated` (
 
 LOCK TABLES `allocated` WRITE;
 /*!40000 ALTER TABLE `allocated` DISABLE KEYS */;
-INSERT INTO `allocated` VALUES ('E001','R001'),('E005','R001'),('E002','R002'),('E003','R002'),('E004','R002'),('E004','R003');
+INSERT INTO `allocated` VALUES ('E005','R004',12),('E005','R005',250),('E007','R001',3);
 /*!40000 ALTER TABLE `allocated` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -50,10 +51,54 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_After_Resource_Allocated` AFTER INSERT ON `allocated` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_Update_Used_Quantity_Insert` AFTER INSERT ON `allocated` FOR EACH ROW BEGIN
     UPDATE resource
-    SET used_quantity = used_quantity + 1
+    SET used_quantity = used_quantity + NEW.allocated_quantity
     WHERE rid = NEW.rid;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = cp850 */ ;
+/*!50003 SET character_set_results = cp850 */ ;
+/*!50003 SET collation_connection  = cp850_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_Update_Used_Quantity_Update` AFTER UPDATE ON `allocated` FOR EACH ROW BEGIN
+    
+    UPDATE resource
+    SET used_quantity = used_quantity - OLD.allocated_quantity
+    WHERE rid = OLD.rid;
+    
+    
+    UPDATE resource
+    SET used_quantity = used_quantity + NEW.allocated_quantity
+    WHERE rid = NEW.rid;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = cp850 */ ;
+/*!50003 SET character_set_results = cp850 */ ;
+/*!50003 SET collation_connection  = cp850_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_Update_Used_Quantity_Delete` AFTER DELETE ON `allocated` FOR EACH ROW BEGIN
+    UPDATE resource
+    SET used_quantity = used_quantity - OLD.allocated_quantity
+    WHERE rid = OLD.rid;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -85,7 +130,7 @@ CREATE TABLE `attends` (
 
 LOCK TABLES `attends` WRITE;
 /*!40000 ALTER TABLE `attends` DISABLE KEYS */;
-INSERT INTO `attends` VALUES ('S001','E001','P'),('S001','E005','P'),('S002','E002','A'),('S003','E005','P'),('S004','E003','P'),('S004','E004','P');
+INSERT INTO `attends` VALUES ('S001','E001','P'),('S001','E005','P'),('S001','E007','P'),('S002','E002','A'),('S003','E005','P'),('S004','E003','P'),('S004','E004','P'),('S006','E004','P'),('S006','E008','A'),('S007','E001','P'),('S007','E007','P');
 /*!40000 ALTER TABLE `attends` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -198,7 +243,6 @@ CREATE TABLE `club` (
   `cid` varchar(5) NOT NULL,
   `cname` varchar(15) NOT NULL,
   `description` text,
-  `domain_id` int NOT NULL,
   `domain_name` varchar(15) NOT NULL,
   PRIMARY KEY (`cid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -210,7 +254,7 @@ CREATE TABLE `club` (
 
 LOCK TABLES `club` WRITE;
 /*!40000 ALTER TABLE `club` DISABLE KEYS */;
-INSERT INTO `club` VALUES ('C001','CodeGeeks','A club for competitive coding and development.',101,'Technical'),('C002','Orators','A public speaking and debate club for students.',201,'Literary'),('C003','Aperture','A club for photography and visual arts.',301,'Cultural'),('C004','Melodia','The university music and choir club.',302,'Cultural');
+INSERT INTO `club` VALUES ('C001','CodeGeeks','A club for competitive coding and development.','Technical'),('C002','Orators','A public speaking and debate club for students.','Literary'),('C003','Aperture','A club for photography and visual arts.','Cultural'),('C004','Melodia','The university music and choir club.','Cultural');
 /*!40000 ALTER TABLE `club` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -230,7 +274,6 @@ CREATE TABLE `event` (
   `opt_time` time NOT NULL,
   `actual_time` time NOT NULL,
   `dept` varchar(10) DEFAULT 'GENERAL',
-  `gname` varchar(15) DEFAULT NULL,
   PRIMARY KEY (`eid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -241,7 +284,7 @@ CREATE TABLE `event` (
 
 LOCK TABLES `event` WRITE;
 /*!40000 ALTER TABLE `event` DISABLE KEYS */;
-INSERT INTO `event` VALUES ('E001','HackFest','Technical','2025-11-20','2025-11-20','09:00:00','09:15:00','CSE','GoogleDevs'),('E002','DebateCon','Literary','2025-11-25','2025-11-25','11:00:00','11:00:00','GENERAL','SpeakUp'),('E003','CaptureIt','Cultural','2025-11-30','2025-11-30','10:00:00','10:00:00','GENERAL','PhotoTeam'),('E004','StageRight','Cultural','2025-12-05','2025-12-05','17:00:00','17:00:00','GENERAL','MusicTeam'),('E005','CodeRelay','Technical','2025-12-10','2025-12-10','09:00:00','09:00:00','CSE','Devs');
+INSERT INTO `event` VALUES ('E001','HackFest','Technical','2025-11-20','2025-11-20','09:00:00','09:15:00','CSE'),('E002','DebateCon','Literary','2025-11-25','2025-11-25','11:00:00','11:00:00','GENERAL'),('E003','CaptureIt','Cultural','2025-11-30','2025-11-30','10:00:00','10:00:00','GENERAL'),('E004','StageRight','Cultural','2025-12-05','2025-12-05','17:00:00','17:00:00','GENERAL'),('E005','CodeRelay','Technical','2025-12-10','2025-12-10','09:00:00','09:00:00','CSE'),('E007','horcrux','Technical','2025-11-07','2025-11-07','10:20:00','10:20:00','CSE'),('E008','AT','Cultural','2025-11-06','2025-11-06','09:35:00','09:35:00','GENERAL');
 /*!40000 ALTER TABLE `event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -296,7 +339,7 @@ CREATE TABLE `feedback` (
 
 LOCK TABLES `feedback` WRITE;
 /*!40000 ALTER TABLE `feedback` DISABLE KEYS */;
-INSERT INTO `feedback` VALUES ('FB01',5,'E001','Excellent management and informative!'),('FB02',4,'E002','The event was great, timings could be better.'),('FB03',4,'E001','Good event, but the mic kept cutting out.'),('FB04',5,'E002','Loved the topics. Very engaging speakers!');
+INSERT INTO `feedback` VALUES ('FB01',5,'E001','Excellent management and informative!'),('FB02',4,'E002','The event was great, timings could be better.'),('FB03',4,'E001','Good event, but the mic kept cutting out.'),('FB04',5,'E002','Loved the topics. Very engaging speakers!'),('FB05',4,'E002','Good event , enjoyed it '),('FB06',5,'E008','Amazing event once in a lifetime opportunity !!');
 /*!40000 ALTER TABLE `feedback` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -379,7 +422,7 @@ CREATE TABLE `is_part_of` (
 
 LOCK TABLES `is_part_of` WRITE;
 /*!40000 ALTER TABLE `is_part_of` DISABLE KEYS */;
-INSERT INTO `is_part_of` VALUES ('S001','C001','Coordinator'),('S002','C002','Member'),('S003','C001','Member'),('S004','C003','Coordinator');
+INSERT INTO `is_part_of` VALUES ('S001','C001','Coordinator'),('S002','C002','Member'),('S003','C001','Member'),('S003','C003','Coordinator'),('S004','C003','Coordinator');
 /*!40000 ALTER TABLE `is_part_of` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -406,7 +449,7 @@ CREATE TABLE `organizes` (
 
 LOCK TABLES `organizes` WRITE;
 /*!40000 ALTER TABLE `organizes` DISABLE KEYS */;
-INSERT INTO `organizes` VALUES ('C001','E001'),('C002','E002'),('C003','E003'),('C004','E004'),('C001','E005');
+INSERT INTO `organizes` VALUES ('C001','E001'),('C002','E002'),('C003','E003'),('C004','E004'),('C001','E005'),('C003','E007'),('C002','E008');
 /*!40000 ALTER TABLE `organizes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -432,7 +475,7 @@ CREATE TABLE `resource` (
 
 LOCK TABLES `resource` WRITE;
 /*!40000 ALTER TABLE `resource` DISABLE KEYS */;
-INSERT INTO `resource` VALUES ('R001','Projector',10,9),('R002','Microphone',15,14),('R003','Speakers',4,5);
+INSERT INTO `resource` VALUES ('R001','Projector',10,12),('R002','Microphone',15,14),('R003','Speakers',4,5),('R004','Furniture',300,12),('R005','Chairs',300,250);
 /*!40000 ALTER TABLE `resource` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -458,7 +501,7 @@ CREATE TABLE `sponsor` (
 
 LOCK TABLES `sponsor` WRITE;
 /*!40000 ALTER TABLE `sponsor` DISABLE KEYS */;
-INSERT INTO `sponsor` VALUES ('SP001','TechCorp','Monetary',50000),('SP002','BookWorm','In-Kind',10000),('SP003','CreativeInc','Monetary',25000);
+INSERT INTO `sponsor` VALUES ('SP001','TechCorp','Monetary',50000),('SP002','BookWorm','In-Kind',10000),('SP003','CreativeInc','Monetary',25000),('SP004','PES','Monetary',30000);
 /*!40000 ALTER TABLE `sponsor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -500,6 +543,7 @@ CREATE TABLE `students` (
   `lname` varchar(15) DEFAULT NULL,
   `department` varchar(10) NOT NULL,
   `sem` int NOT NULL,
+  `password` varchar(255) NOT NULL,
   PRIMARY KEY (`sid`),
   CONSTRAINT `chk_sem` CHECK (((`sem` >= 1) and (`sem` <= 8)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -511,7 +555,7 @@ CREATE TABLE `students` (
 
 LOCK TABLES `students` WRITE;
 /*!40000 ALTER TABLE `students` DISABLE KEYS */;
-INSERT INTO `students` VALUES ('S001','Aarav','Kumar','CSE',5),('S002','Priya','Singh','ECE',3),('S003','Ravi','Sharma','CSE',5),('S004','Meera','Iyer','ECE',3);
+INSERT INTO `students` VALUES ('S001','Aarav','Kumar','CSE',5,'scrypt:32768:8:1$cWUoYIx9JUTbdH9k$da456074bb328c4226efeec8ab057e97acefc9fb696032e2f3f91edb17e56770b82a1973303686ba98115ec4fc0c8a9df04ff8e51fcc889722af130f476edfc3'),('S002','Priya','Singh','ECE',3,'scrypt:32768:8:1$cWUoYIx9JUTbdH9k$da456074bb328c4226efeec8ab057e97acefc9fb696032e2f3f91edb17e56770b82a1973303686ba98115ec4fc0c8a9df04ff8e51fcc889722af130f476edfc3'),('S003','Ravi','Sharma','CSE',5,'scrypt:32768:8:1$cWUoYIx9JUTbdH9k$da456074bb328c4226efeec8ab057e97acefc9fb696032e2f3f91edb17e56770b82a1973303686ba98115ec4fc0c8a9df04ff8e51fcc889722af130f476edfc3'),('S004','Meera','Iyer','ECE',3,'scrypt:32768:8:1$cWUoYIx9JUTbdH9k$da456074bb328c4226efeec8ab057e97acefc9fb696032e2f3f91edb17e56770b82a1973303686ba98115ec4fc0c8a9df04ff8e51fcc889722af130f476edfc3'),('S005','Shalmali ','Ram','CSE',5,'scrypt:32768:8:1$cWUoYIx9JUTbdH9k$da456074bb328c4226efeec8ab057e97acefc9fb696032e2f3f91edb17e56770b82a1973303686ba98115ec4fc0c8a9df04ff8e51fcc889722af130f476edfc3'),('S006','Alice','Mathew','ECE',3,'scrypt:32768:8:1$cWUoYIx9JUTbdH9k$da456074bb328c4226efeec8ab057e97acefc9fb696032e2f3f91edb17e56770b82a1973303686ba98115ec4fc0c8a9df04ff8e51fcc889722af130f476edfc3'),('S007','Peter ','Fernandis','CIVIL',3,'scrypt:32768:8:1$4UrRhyb2kqt8gy1y$daf589449de424f344750f7a348f21c2f9ddb88a0abb8d4e0ae0de7c0ed7d1540b3fa3821151c91bc85dcdbaa9641e47f759f950883a2479af2d23c4ab8f2303');
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -561,6 +605,7 @@ SET @saved_cs_client     = @@character_set_client;
  1 AS `eid`,
  1 AS `ename`,
  1 AS `actual_date`,
+ 1 AS `actual_time`,
  1 AS `club_name`,
  1 AS `registered_count`*/;
 SET character_set_client = @saved_cs_client;
@@ -605,7 +650,7 @@ CREATE TABLE `venue` (
 
 LOCK TABLES `venue` WRITE;
 /*!40000 ALTER TABLE `venue` DISABLE KEYS */;
-INSERT INTO `venue` VALUES ('V001','Auditorium',500,0,'G01','Main'),('V002','Seminar Hall',120,2,'205','Admin'),('V003','Open Air Theatre',800,0,'OAT','BE');
+INSERT INTO `venue` VALUES ('V001','Auditorium',500,1,'G11','Main'),('V002','Seminar Hall',120,2,'205','Admin'),('V003','Open Air Theatre',800,0,'OAT','BE'),('V004','SEMINAR HALL',120,2,'','BE');
 /*!40000 ALTER TABLE `venue` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -765,12 +810,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `AddEvent`(
     IN e_actual_date DATE,
     IN e_opt_time TIME,
     IN e_actual_time TIME,
-    IN e_dept VARCHAR(10),
-    IN e_gname VARCHAR(15)
+    IN e_dept VARCHAR(10)
 )
 BEGIN
-    INSERT INTO event(eid, ename, etype, opt_date, actual_date, opt_time, actual_time, dept, gname)
-    VALUES(e_id, e_name, e_type, e_opt_date, e_actual_date, e_opt_time, e_actual_time, e_dept, e_gname);
+    INSERT INTO event(eid, ename, etype, opt_date, actual_date, opt_time, actual_time, dept)
+    VALUES(e_id, e_name, e_type, e_opt_date, e_actual_date, e_opt_time, e_actual_time, e_dept);
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -789,7 +833,7 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `GetEventsByDepartment`(IN dept_name VARCHAR(10))
 BEGIN
-    SELECT eid, ename, etype, actual_date, actual_time, dept, gname
+    SELECT eid, ename, etype, actual_date, actual_time, dept
     FROM event
     WHERE dept = dept_name;
 END ;;
@@ -872,7 +916,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = cp850_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `v_event_summary` AS select `e`.`eid` AS `eid`,`e`.`ename` AS `ename`,`e`.`actual_date` AS `actual_date`,`c`.`cname` AS `club_name`,count(`a`.`sid`) AS `registered_count` from (((`event` `e` left join `organizes` `o` on((`e`.`eid` = `o`.`eid`))) left join `club` `c` on((`o`.`cid` = `c`.`cid`))) left join `attends` `a` on((`e`.`eid` = `a`.`eid`))) group by `e`.`eid`,`e`.`ename`,`e`.`actual_date`,`c`.`cname` */;
+/*!50001 VIEW `v_event_summary` AS select `e`.`eid` AS `eid`,`e`.`ename` AS `ename`,`e`.`actual_date` AS `actual_date`,`e`.`actual_time` AS `actual_time`,`c`.`cname` AS `club_name`,count(`a`.`sid`) AS `registered_count` from (((`event` `e` left join `organizes` `o` on((`e`.`eid` = `o`.`eid`))) left join `club` `c` on((`o`.`cid` = `c`.`cid`))) left join `attends` `a` on((`e`.`eid` = `a`.`eid`))) group by `e`.`eid`,`e`.`ename`,`e`.`actual_date`,`e`.`actual_time`,`c`.`cname` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -904,4 +948,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-05 10:51:26
+-- Dump completed on 2025-11-07 10:10:01
