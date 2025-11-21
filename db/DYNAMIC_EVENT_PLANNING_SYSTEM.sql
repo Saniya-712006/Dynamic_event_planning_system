@@ -940,6 +940,80 @@ DELIMITER ;
 /*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
+
+-- COMPLEX ANALYTICAL QUERIES (added manually because dump doesn't capture them)
+
+
+-- 1. Preference Learning Algorithm
+-- Compares Stated Preference vs. Revealed Preference (Actual Attendance)
+WITH StudentEventPreferences AS (
+    SELECT
+        a.sid,
+        e.etype,
+        COUNT(e.eid) AS 'attended_count',
+        ROW_NUMBER() OVER(PARTITION BY a.sid ORDER BY COUNT(e.eid) DESC) AS 'preference_rank'
+    FROM 
+        attends a
+    JOIN 
+        event e ON a.eid = e.eid
+    WHERE 
+        a.status = 'A'
+    GROUP BY 
+        a.sid, e.etype
+)
+SELECT 
+    s.fname,
+    s.lname,
+    p.etype AS 'FavoriteEventType',
+    p.attended_count
+FROM 
+    StudentEventPreferences p
+JOIN 
+    students s ON p.sid = s.sid
+WHERE 
+    p.preference_rank = 1;
+
+-- 2. Resource Optimization Analysis
+-- Calculates the variance between Predicted and Used quantities
+SELECT 
+    type, 
+    (pred_quantity - used_quantity) as variance 
+FROM 
+    resource;
+
+-- 3. Departmental Engagement Ranking
+WITH EventAttendance AS (
+    SELECT 
+        e.dept,
+        e.ename,
+        e.etype,
+        COUNT(a.sid) AS 'actual_attendance'
+    FROM 
+        event e
+    JOIN 
+        attends a ON e.eid = a.eid
+    WHERE 
+        a.status = 'A'
+    GROUP BY 
+        e.dept, e.ename, e.etype
+)
+SELECT 
+    dept,
+    ename,
+    etype,
+    actual_attendance,
+    RANK() OVER (PARTITION BY dept ORDER BY actual_attendance DESC) AS 'Rank_Within_Dept'
+FROM 
+    EventAttendance
+ORDER BY 
+    dept, Rank_Within_Dept;
+
+
+
+
+
+
+
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
